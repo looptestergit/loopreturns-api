@@ -1,4 +1,4 @@
-import clientPromise from "./lib/mongo";
+import clientPromise from "../lib/mongo";
 
 export default async function handler(req, res) {
   try {
