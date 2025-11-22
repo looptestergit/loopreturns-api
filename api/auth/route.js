@@ -1,9 +1,24 @@
+import { NextResponse } from "next/server";
+
 export async function POST(req) {
-  const { password } = await req.json();
+  try {
+    const { password } = await req.json();
 
-  if (password === process.env.DASHBOARD_PASSWORD) {
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    if (!password) {
+      return NextResponse.json({ error: "Missing password" }, { status: 400 });
+    }
+
+    if (password === process.env.DASHBOARD_PASSWORD) {
+      return NextResponse.json({ ok: true });
+    }
+
+    return NextResponse.json({ ok: false, error: "Invalid password" }, { status: 401 });
+
+  } catch (e) {
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
+}
 
-  return new Response(JSON.stringify({ ok: false }), { status: 401 });
+export function GET() {
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
