@@ -1,53 +1,173 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
   const [ready, setReady] = useState(false);
 
+  // ============================================
+  // LOAD DATA + AUTH VALIDATION
+  // ============================================
   useEffect(() => {
     const token = localStorage.getItem("lr_token");
-    const readKey = localStorage.getItem("lr_read_key");
-
-    console.log("TOKEN:", token);
-    console.log("READ KEY:", readKey);
-
     if (token !== "ok") {
       window.location.href = "/login";
       return;
     }
 
-    if (!readKey) {
-      console.error("Missing read key – Cannot fetch list");
-      return;
-    }
+    const readKey = localStorage.getItem("lr_read_key");
+    if (!readKey) return;
 
-    setReady(true);  // allow HTML to render
+    setReady(true);
 
     fetch("https://loopreturns-api.vercel.app/api/list", {
       headers: { "x-api-key": readKey }
     })
-    .then(r => r.json())
-    .then(d => {
-      if (!Array.isArray(d)) {
-        console.error("List error:", d);
-        return;
-      }
-      setData(d);
-    });
-
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d)) {
+          setData(d);
+        }
+      });
   }, []);
 
   if (!ready) return null;
 
+  // ============================================
+  // METRIC CALCULATIONS
+  // ============================================
+  const totalEntries = data.length;
+  const uniqueStores = new Set(data.map(x => x.parsed?.name || x.name)).size;
+
+  // ============================================
+  // DOWNLOAD PARSED CSV
+  // ============================================
+  const downloadParsedCSV = () => {
+    let rows = "date,name,url,returns,delay,exchanges,exDelay\n";
+
+    data.forEach(x => {
+      rows += `${x.date},${x.parsed?.name || ""},${x.parsed?.url || ""},${x.parsed?.returns || ""},${x.parsed?.rDelay || ""},${x.parsed?.exchanges || ""},${x.parsed?.eDelay || ""}\n`;
+    });
+
+    const blob = new Blob([rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "parsed_stores.csv";
+    a.click();
+  };
+
+  // ============================================
+  // DOWNLOAD RAW JSON
+  // ============================================
+  const downloadRawJSON = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "all_raw_data.json";
+    a.click();
+  };
+
+  // ============================================
+  // UI RENDER
+  // ============================================
   return (
-    <div>
-      <h1>Dashboard</h1>
-      {data.length > 0 ? (
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      ) : (
-        <div>No data yet</div>
-      )}
+    <div className="p-8 bg-gray-100 min-h-screen">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-semibold">📊 LoopReturns Dashboard</h1>
+
+        <button
+          onClick={() => { 
+            localStorage.clear(); 
+            window.location.href="/login"; 
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded shadow"
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* METRIC CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+        <div className="bg-white shadow rounded p-6">
+          <p className="text-gray-500 text-sm">Total Unique Stores</p>
+          <p className="text-3xl font-bold">{uniqueStores}</p>
+        </div>
+
+        <div className="bg-white shadow rounded p-6">
+          <p className="text-gray-500 text-sm">Total Entries</p>
+          <p className="text-3xl font-bold">{totalEntries}</p>
+        </div>
+
+        <div className="bg-white shadow rounded p-6">
+          <p className="text-gray-500 text-sm">Last Updated</p>
+          <p className="text-lg font-semibold">
+            {new Date().toLocaleString()}
+          </p>
+        </div>
+
+      </div>
+
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-4 mb-8">
+        <button
+          onClick={downloadParsedCSV}
+          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
+        >
+          ⬇ Download Parsed CSV
+        </button>
+
+        <button
+          onClick={downloadRawJSON}
+          className="bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-800"
+        >
+          ⬇ Download Full Raw JSON
+        </button>
+      </div>
+
+      {/* DATA TABLE */}
+      <div className="bg-white rounded shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="p-3 text-left">Date</th>
+              <th className="p-3 text-left">Store</th>
+              <th className="p-3 text-left">URL</th>
+              <th className="p-3 text-left">Returns</th>
+              <th className="p-3 text-left">Delay</th>
+              <th className="p-3 text-left">Exchanges</th>
+              <th className="p-3 text-left">Ex Delay</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((x, i) => (
+              <tr key={i} className="border-b hover:bg-gray-50">
+                <td className="p-3">{x.date}</td>
+                <td className="p-3">{x.parsed?.name || "—"}</td>
+                <td className="p-3 text-blue-600 underline">
+                  <a href={x.parsed?.url} target="_blank" rel="noreferrer">
+                    {x.parsed?.url || "—"}
+                  </a>
+                </td>
+                <td className="p-3">{x.parsed?.returns || "—"}</td>
+                <td className="p-3">{x.parsed?.rDelay || "—"}</td>
+                <td className="p-3">{x.parsed?.exchanges || "—"}</td>
+                <td className="p-3">{x.parsed?.eDelay || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 }
