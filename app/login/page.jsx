@@ -6,7 +6,7 @@ export default function Login() {
   const [err, setErr] = useState("");
 
   const submit = async () => {
-    setErr(""); 
+    setErr("");
 
     try {
       const res = await fetch("/api/auth", {
@@ -17,16 +17,13 @@ export default function Login() {
         body: JSON.stringify({ password: pw })
       });
 
-      let data = {};
-      try {
-        data = await res.json();   // safely parse
-      } catch {
-        setErr("Server error");
-        return;
-      }
+      const data = await res.json();
 
       if (data.ok) {
+        // ⭐ Save BOTH values
         localStorage.setItem("lr_token", "ok");
+        localStorage.setItem("lr_read_key", data.readKey);
+
         window.location.href = "/dashboard";
       } else {
         setErr("Invalid password");
@@ -50,8 +47,9 @@ export default function Login() {
       />
 
       <button 
-        onClick={submit} 
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+        onClick={submit}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+      >
         Login
       </button>
 
