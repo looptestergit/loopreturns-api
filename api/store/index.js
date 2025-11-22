@@ -1,4 +1,4 @@
-import clientPromise from "./lib/mongo";
+import clientPromise from "./lib/mongo.js";
 
 export default async function handler(req, res) {
   // Allow Chrome extension + all sites (dev convenience)
