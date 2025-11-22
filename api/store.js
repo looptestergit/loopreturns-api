@@ -6,10 +6,10 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // optional but recommended: require API key
+    // WRITE key required to save data
     const apiKey = req.headers["x-api-key"];
-    if (apiKey !== process.env.API_KEY) {
-      return res.status(401).json({ error: "Invalid API Key" });
+    if (apiKey !== process.env.API_KEY_WRITE) {
+      return res.status(401).json({ error: "Invalid Write Key" });
     }
 
     const body = req.body;
@@ -18,18 +18,17 @@ export default async function handler(req, res) {
     const client = await clientPromise;
     const db = client.db("loopreturns");
 
-    const doc = {
+    await db.collection("stores").insertOne({
       date: new Date(),
-      parsed: body.parsed,  
-      raw: body.raw,        
+      parsed: body.parsed,
+      raw: body.raw,
       userInfo: body.userInfo || null,
-    };
-
-    await db.collection("stores").insertOne(doc);
+    });
 
     return res.status(200).json({ success: true });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error" });
   }
 }
