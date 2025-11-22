@@ -3,43 +3,51 @@ import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // ⭐ Check main login token
     const token = localStorage.getItem("lr_token");
+    const readKey = localStorage.getItem("lr_read_key");
+
+    console.log("TOKEN:", token);
+    console.log("READ KEY:", readKey);
+
     if (token !== "ok") {
       window.location.href = "/login";
       return;
     }
 
-    // ⭐ Get stored read key
-    const readKey = localStorage.getItem("lr_read_key");
     if (!readKey) {
-      console.error("No read key stored");
+      console.error("Missing read key – Cannot fetch list");
       return;
     }
 
-    // ⭐ Authenticated fetch
+    setReady(true);  // allow HTML to render
+
     fetch("https://loopreturns-api.vercel.app/api/list", {
       headers: { "x-api-key": readKey }
     })
     .then(r => r.json())
     .then(d => {
-      // handle error response safely
       if (!Array.isArray(d)) {
-        console.error("List API returned:", d);
+        console.error("List error:", d);
         return;
       }
-
       setData(d);
     });
 
   }, []);
 
+  if (!ready) return null;
+
   return (
     <div>
       <h1>Dashboard</h1>
-      {/* Render your data here */}
+      {data.length > 0 ? (
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      ) : (
+        <div>No data yet</div>
+      )}
     </div>
   );
 }
