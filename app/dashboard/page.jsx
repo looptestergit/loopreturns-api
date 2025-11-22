@@ -44,7 +44,7 @@ export default function Dashboard() {
   // DOWNLOAD PARSED CSV
   // ============================================
 const downloadParsedCSV = () => {
-  let headers = [
+  const headers = [
     "createdAt",
     "name",
     "url",
@@ -52,10 +52,10 @@ const downloadParsedCSV = () => {
     "return_delay",
     "exchanges",
     "exchange_delay",
-    "gift_cards",
+    "giftcards",
     "giftcard_delay",
     "keep_item",
-    "keepitem_threshold",
+    "keepItem_threshold",
     "bypass_review"
   ];
 
@@ -65,24 +65,26 @@ const downloadParsedCSV = () => {
     const p = x.parsed || {};
 
     const row = [
-      JSON.stringify(x.createdAt || ""),   // ensures safe string
-      JSON.stringify(p.name || ""),
-      JSON.stringify(p.url || ""),
-      JSON.stringify(p.returns || ""),
-      JSON.stringify(p.rDelay || ""),
-      JSON.stringify(p.exchanges || ""),
-      JSON.stringify(p.eDelay || ""),
-      JSON.stringify(p.gc || ""),
-      JSON.stringify(p.gDelay || ""),
-      JSON.stringify(p.keepItem || ""),
-      JSON.stringify(p.keepItemAmnt || ""),
-      JSON.stringify(p.bypassReview || "")
-    ].join(",");
+      x.createdAt || "",
+      p.name || "",
+      p.url || "",
+      p.returns || "",
+      p.rDelay || "",
+      p.exchanges || "",
+      p.eDelay || "",
+      p.gc || "",
+      p.gDelay || "",
+      p.keepItem || "",
+      p.keepItemAmnt || "",
+      p.bypassReview || ""
+    ]
+      .map(v => JSON.stringify(v)) // safe quoting
+      .join(",");
 
     rows += row + "\n";
   });
 
-  const blob = new Blob([rows], { type: "text/csv" });
+  const blob = new Blob([rows], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
@@ -90,6 +92,7 @@ const downloadParsedCSV = () => {
   a.download = "parsed_stores.csv";
   a.click();
 };
+
 
 
   // ============================================
