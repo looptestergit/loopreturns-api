@@ -1,12 +1,24 @@
-import clientPromise from "../../lib/mongo";
+import clientPromise from "./lib/mongo";
 
 export default async function handler(req, res) {
   try {
+    const apiKey = req.headers["x-api-key"];
+    if (apiKey !== process.env.API_KEY) {
+      return res.status(401).json({ error: "Invalid API Key" });
+    }
+
     const client = await clientPromise;
     const db = client.db("loopreturns");
-    const docs = await db.collection("stores").find({}).sort({ date: -1 }).toArray();
-    return res.status(200).json(docs);
-  } catch (e) {
-    return res.status(500).json({ error: e.toString() });
+
+    const stores = await db
+      .collection("stores")
+      .find({})
+      .sort({ date: -1 })
+      .toArray();
+
+    return res.status(200).json(stores);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 }
