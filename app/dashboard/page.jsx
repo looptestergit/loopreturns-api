@@ -43,21 +43,54 @@ export default function Dashboard() {
   // ============================================
   // DOWNLOAD PARSED CSV
   // ============================================
-  const downloadParsedCSV = () => {
-    let rows = "date,name,url,returns,delay,exchanges,delay,gift_cards,delay,keep_item,threshold,bypass_review\n";
+const downloadParsedCSV = () => {
+  let headers = [
+    "createdAt",
+    "name",
+    "url",
+    "returns",
+    "return_delay",
+    "exchanges",
+    "exchange_delay",
+    "gift_cards",
+    "giftcard_delay",
+    "keep_item",
+    "keepitem_threshold",
+    "bypass_review"
+  ];
 
-    data.forEach(x => {
-      rows += `${x.createdAt},${x.parsed?.name || ""},${x.parsed?.url || ""},${x.parsed?.returns || ""},${x.parsed?.rDelay || ""},${x.parsed?.exchanges || ""},${x.parsed?.eDelay || ""}, ${x.parsed?.gc || ""},${x.parsed?.gDelay || ""},${x.parsed?.keepItem || ""},${x.parsed?.keepItemAmnt || ""},${x.parsed?.bypassReview || ""}\n`;
-    });
+  let rows = headers.join(",") + "\n";
 
-    const blob = new Blob([rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+  data.forEach(x => {
+    const p = x.parsed || {};
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "parsed_stores.csv";
-    a.click();
-  };
+    const row = [
+      JSON.stringify(x.createdAt || ""),   // ensures safe string
+      JSON.stringify(p.name || ""),
+      JSON.stringify(p.url || ""),
+      JSON.stringify(p.returns || ""),
+      JSON.stringify(p.rDelay || ""),
+      JSON.stringify(p.exchanges || ""),
+      JSON.stringify(p.eDelay || ""),
+      JSON.stringify(p.gc || ""),
+      JSON.stringify(p.gDelay || ""),
+      JSON.stringify(p.keepItem || ""),
+      JSON.stringify(p.keepItemAmnt || ""),
+      JSON.stringify(p.bypassReview || "")
+    ].join(",");
+
+    rows += row + "\n";
+  });
+
+  const blob = new Blob([rows], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "parsed_stores.csv";
+  a.click();
+};
+
 
   // ============================================
   // DOWNLOAD RAW JSON
