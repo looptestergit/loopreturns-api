@@ -13,7 +13,7 @@ export default function handler(req, res) {
     if (password === process.env.DASHBOARD_PASSWORD) {
       return res.status(200).json({
         ok: true,
-        readKey: process.env.API_KEY_READ         // ⭐ Add this
+        readKey: process.env.API_KEY_READ  // ⭐ Send the read key
       });
     }
 
