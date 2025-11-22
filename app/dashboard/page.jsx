@@ -9,7 +9,7 @@ export default function Dashboard(){
     if(localStorage.getItem("lr_token")!=="ok"){ window.location.href="/login"; return; }
 
     fetch("https://loopreturns-api.vercel.app/api/list",{
-      headers:{ "x-api-key": process.env.NEXT_PUBLIC_API_READ_KEY }
+      headers:{ "x-api-key": process.env.API_READ_KEY }
     })
     .then(r=>r.json()).then(d=>{
       setData(d);
