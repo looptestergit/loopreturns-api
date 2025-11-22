@@ -2,9 +2,10 @@ import clientPromise from "./lib/mongo";
 
 export default async function handler(req, res) {
   try {
+    // READ key required to view data
     const apiKey = req.headers["x-api-key"];
-    if (apiKey !== process.env.API_KEY) {
-      return res.status(401).json({ error: "Invalid API Key" });
+    if (apiKey !== process.env.API_KEY_READ) {
+      return res.status(401).json({ error: "Invalid Read Key" });
     }
 
     const client = await clientPromise;
@@ -17,8 +18,9 @@ export default async function handler(req, res) {
       .toArray();
 
     return res.status(200).json(stores);
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error" });
   }
 }
