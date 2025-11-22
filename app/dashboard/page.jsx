@@ -44,10 +44,10 @@ export default function Dashboard() {
   // DOWNLOAD PARSED CSV
   // ============================================
   const downloadParsedCSV = () => {
-    let rows = "date,name,url,returns,delay,exchanges,exDelay\n";
+    let rows = "date,name,url,returns,delay,exchanges,delay,gift_cards,delay,keep_item,threshold,bypass_review\n";
 
     data.forEach(x => {
-      rows += `${x.date},${x.parsed?.name || ""},${x.parsed?.url || ""},${x.parsed?.returns || ""},${x.parsed?.rDelay || ""},${x.parsed?.exchanges || ""},${x.parsed?.eDelay || ""}\n`;
+      rows += `${x.createdAt},${x.parsed?.name || ""},${x.parsed?.url || ""},${x.parsed?.returns || ""},${x.parsed?.rDelay || ""},${x.parsed?.exchanges || ""},${x.parsed?.eDelay || ""}, ${x.parsed?.gc || ""},${x.parsed?.gDelay || ""},${x.parsed?.keepItem || ""},${x.parsed?.keepItemAmnt || ""},${x.parsed?.bypassReview || ""}\n`;
     });
 
     const blob = new Blob([rows], { type: "text/csv" });
