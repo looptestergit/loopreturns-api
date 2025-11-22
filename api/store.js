@@ -1,34 +1,38 @@
 import clientPromise from "./lib/mongo";
 
 export default async function handler(req, res) {
+  // Allow Chrome extension + all sites (dev convenience)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
+
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
+  // Require API key
+  if (req.headers["x-api-key"] !== process.env.API_KEY_WRITE) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
-    // WRITE key required to save data
-    const apiKey = req.headers["x-api-key"];
-    if (apiKey !== process.env.API_KEY_WRITE) {
-      return res.status(401).json({ error: "Invalid Write Key" });
-    }
-
-    const body = req.body;
-    if (!body) return res.status(400).json({ error: "Missing JSON body" });
-
     const client = await clientPromise;
     const db = client.db("loopreturns");
+    const stores = db.collection("stores");
 
-    await db.collection("stores").insertOne({
-      date: new Date(),
-      parsed: body.parsed,
-      raw: body.raw,
-      userInfo: body.userInfo || null,
+    await stores.insertOne({
+      createdAt: new Date(),
+      ...req.body
     });
 
-    return res.status(200).json({ success: true });
-
+    res.status(200).json({ ok: true });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error" });
+    console.error("DB error:", err);
+    res.status(500).json({ error: "DB error" });
   }
 }
