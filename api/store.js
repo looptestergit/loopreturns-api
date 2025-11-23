@@ -1,54 +1,34 @@
 import clientPromise from "../lib/mongo.js";
 
-export default async function handler(req, res) {
-
-  
-  // Allow Chrome extension + all sites (dev convenience)
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
-
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(200).end();
-  }
-
-  // Store IP → timestamp
+// --------------------
+// GLOBAL (PERSISTENT) IP RATE LIMIT TABLE
+// --------------------
 const ipHits = {};
 
 function rateLimitIP(req) {
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-    req.socket.remoteAddress ||
+    req.socket?.remoteAddress ||
     "unknown";
 
   const now = Date.now();
 
   if (!ipHits[ip]) {
     ipHits[ip] = now;
-    return true;
+    return { allowed: true, ip };
   }
 
-  // 5 seconds = 5000 ms
   if (now - ipHits[ip] < 5000) {
-    return false; // too fast
+    return { allowed: false, ip };
   }
 
   ipHits[ip] = now;
-  return true;
+  return { allowed: true, ip };
 }
 
-
-if (!rateLimitIP(req)) {
-  return res.status(429).json({
-    error: "Too many requests — wait 5 seconds."
-  });
-}
-
+// --------------------
+// VALIDATOR (Medium strength)
+// --------------------
 function validateLoopPayload(body) {
   if (!body || typeof body !== "object") return false;
 
@@ -57,7 +37,7 @@ function validateLoopPayload(body) {
   if (!raw || typeof raw !== "object") return false;
   if (!userInfo || typeof userInfo !== "object") return false;
 
-  // Required parsed fields (soft)
+  // Required parsed fields
   const requiredParsed = {
     name: "string",
     url: "string",
@@ -69,7 +49,7 @@ function validateLoopPayload(body) {
     gDelay: "number",
     keepItem: "boolean",
     keepItemAmnt: "number",
-    bypassReview: "boolean"
+    bypassReview: "boolean",
   };
 
   for (const [key, type] of Object.entries(requiredParsed)) {
@@ -77,11 +57,11 @@ function validateLoopPayload(body) {
     if (typeof parsed[key] !== type) return false;
   }
 
-  // Soft URL validation
-  if (typeof parsed.url !== "string" || parsed.url.length < 8) return false;
+  // URL format
+  if (parsed.url.length < 8) return false;
   if (!/^https?:\/\//.test(parsed.url)) return false;
 
-  // Soft store name validation
+  // Store name length
   if (parsed.name.length < 2 || parsed.name.length > 120) return false;
 
   // Allowed status values
@@ -93,21 +73,20 @@ function validateLoopPayload(body) {
     "out-for-delivery",
     "pending",
     "none",
-    "N/A"
+    "N/A",
   ];
 
   if (!validEvents.includes(parsed.returns)) return false;
   if (!validEvents.includes(parsed.exchanges)) return false;
   if (!validEvents.includes(parsed.gc)) return false;
 
-  // Raw must contain real LoopReturns structure
+  // Raw must contain return policy
   if (!raw.return_policy || typeof raw.return_policy !== "object") return false;
 
-  // User info checks
+  // User info
   if (!userInfo.url || typeof userInfo.url !== "string") return false;
   if (!/^https?:\/\//.test(userInfo.url)) return false;
 
-  // Timestamp validation
   if (!userInfo.collectedAt || isNaN(Date.parse(userInfo.collectedAt))) {
     return false;
   }
@@ -115,32 +94,63 @@ function validateLoopPayload(body) {
   return true;
 }
 
+// --------------------
+// MAIN HANDLER
+// --------------------
+export default async function handler(req, res) {
 
+  // --- CORS ---
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
 
-  if (!validateLoopPayload(req.body)) {
-  return res.status(400).json({ error: "" });
-}
-
-
-  // Require API key
-  if (req.headers["x-api-key"] !== process.env.API_KEY_WRITE) {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  try {
+  if (req.method !== "POST") {
+    return res.status(200).end();
+  }
 
+  // --- RATE LIMIT PER IP ---
+  const { allowed, ip } = rateLimitIP(req);
+  if (!allowed) {
+    return res.status(429).json({ error: "Too many requests, wait 5s", ip });
+  }
+
+  // --- VALIDATE PAYLOAD ---
+  if (!validateLoopPayload(req.body)) {
+    return res.status(400).json({ error: "Invalid LoopReturns payload" });
+  }
+
+  // --- API KEY ---
+  if (req.headers["x-api-key"] !== process.env.API_KEY_WRITE) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
     const client = await clientPromise;
     const db = client.db("loopreturns");
     const stores = db.collection("stores");
 
+    // Add IP into userInfo
+    const payload = {
+      ...req.body,
+      userInfo: {
+        ...req.body.userInfo,
+        ipAddress: ip
+      }
+    };
+
     await stores.insertOne({
       createdAt: new Date(),
-      ...req.body
+      ...payload
     });
 
-    res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true });
+
   } catch (err) {
     console.error("DB error:", err);
-    res.status(500).json({ error: "DB error" });
+    return res.status(500).json({ error: "DB error" });
   }
 }
