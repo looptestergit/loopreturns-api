@@ -57,23 +57,7 @@ if (!rateLimitIP(req)) {
   if (!raw || typeof raw !== "object") return false;
   if (!userInfo || typeof userInfo !== "object") return false;
 
-  // Must be from LoopReturns platform
-  if (!/loopreturns/.test(raw?.brand_settings?.api_domain || "")) return false;
-  if (!/order\/lookup/.test(userInfo.url || "")) return false;
-
-  // Raw structure
-  const requiredRawKeys = [
-    "order",
-    "return_policy",
-    "brand_settings",
-    "locale",
-    "currency"
-  ];
-  for (const key of requiredRawKeys) {
-    if (!(key in raw)) return false;
-  }
-
-  // Parsed schema
+  // Required parsed fields (soft check)
   const requiredParsed = {
     name: "string",
     url: "string",
@@ -85,64 +69,47 @@ if (!rateLimitIP(req)) {
     gDelay: "number",
     keepItem: "boolean",
     keepItemAmnt: "number",
-    bypassReview: "boolean",
+    bypassReview: "boolean"
   };
 
-  // Block extra parsed fields
-  const parsedKeys = Object.keys(parsed);
-  const allowedKeys = Object.keys(requiredParsed);
-  if (parsedKeys.some(k => !allowedKeys.includes(k))) return false;
-
-  // Type checking and anti-spam limits
   for (const [key, type] of Object.entries(requiredParsed)) {
     if (!(key in parsed)) return false;
     if (typeof parsed[key] !== type) return false;
-    if (type === "string" && parsed[key].length > 120) return false;
   }
 
-  // URL validation
-  if (!/^https?:\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(parsed.url)) return false;
-  if (!/^[a-zA-Z0-9 _-]{2,60}$/.test(parsed.name)) return false;
+  // Soft URL check (no strict domain)
+  if (typeof parsed.url !== "string" || parsed.url.length < 8) return false;
 
-  // Valid states
+  // Store name must not be garbage
+  if (parsed.name.length < 2 || parsed.name.length > 120) return false;
+
+  // Keep simple allowed status values
   const validEvents = [
     "delivered",
     "in_transit",
     "in-transit",
     "out_for_delivery",
     "out-for-delivery",
+    "pending",
     "none",
     "N/A"
   ];
+
   if (!validEvents.includes(parsed.returns)) return false;
   if (!validEvents.includes(parsed.exchanges)) return false;
   if (!validEvents.includes(parsed.gc)) return false;
 
-  // Cross-check parsed <-> raw return policy
-  const rp = raw.return_policy;
-  if (!rp || typeof rp !== "object") return false;
+  // Raw must contain basic LoopReturns structure but no strict matching
+  if (!raw.order || typeof raw.order !== "object") return false;
+  if (!raw.return_policy || typeof raw.return_policy !== "object") return false;
 
-  if (parsed.rDelay !== (rp.refund_event_delay_hours || 0)) return false;
-  if (parsed.eDelay !== (rp.exchange_event_delay_hours || 0)) return false;
-  if (parsed.gDelay !== (rp.gift_card_event_delay_hours || 0)) return false;
-
-  if (parsed.returns !== (rp.refund_event || "N/A")) return false;
-  if (parsed.exchanges !== (rp.exchange_event || "N/A")) return false;
-  if (parsed.gc !== (rp.gift_card_event || "N/A")) return false;
-
-  if (parsed.keepItem !== !!rp.keep_item_enabled) return false;
-  if (parsed.keepItemAmnt !== (rp.keep_item_threshold || 0)) return false;
-  if (parsed.bypassReview !== !!rp.bypass_review) return false;
-
-  // User info validation
-  if (!userInfo.userAgent || userInfo.userAgent.length > 300) return false;
-  if (!/^https?:\/\//.test(userInfo.url)) return false;
-  if (!userInfo.collectedAt || isNaN(Date.parse(userInfo.collectedAt))) {
-    return false;
-  }
+  // UserInfo soft validation
+  if (!userInfo.url || typeof userInfo.url !== "string") return false;
+  if (!userInfo.collectedAt || isNaN(Date.parse(userInfo.collectedAt))) return false;
 
   return true;
 }
+
 
   if (!validateLoopPayload(req.body)) {
   return res.status(400).json({ error: "" });
