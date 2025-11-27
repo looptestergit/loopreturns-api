@@ -44,9 +44,16 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  if (req.method === "GET") {
+    res.writeHead(302, { Location: "https://t.me/loopreturnsauce" });
+    return res.end();
+  }
+
   if (req.method !== "POST") {
     return res.status(200).end();
   }
+
+
 
   // --- RATE LIMIT PER IP ---
   const { allowed, ip } = rateLimitIP(req);
