@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Rothy's",
+    "url": "https://returns.rothys.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  },
+  {
+    "name": "Relay",
+    "url": "https://relay.loopreturns.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 50,
+    "bypassReview": true
+  },
+  {
+    "name": "CBS Deals",
+    "url": "https://cbsdeals.loopreturns.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "delivered",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  },
+  {
+    "name": "Kizik",
+    "url": "https://exchanges.kizik.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 79,
+    "bypassReview": true
+  },
+  {
+    "name": "Dagne Dover",
+    "url": "https://dagnedover.loopreturns.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  }
+]
