@@ -45,7 +45,7 @@ export default function Dashboard() {
   // ============================================
 const downloadParsedCSV = () => {
   const headers = [
-    "createdAt",
+    "date",
     "name",
     "url",
     "returns",
@@ -65,7 +65,7 @@ const downloadParsedCSV = () => {
     const p = x.parsed || {};
 
     const row = [
-      x.createdAt || "",
+      x.userInfo?.collectedAt || "",
       p.name || "",
       p.url || "",
       p.returns || "",
@@ -182,12 +182,21 @@ const downloadParsedCSV = () => {
               <th className="p-3 text-left">Delay</th>
               <th className="p-3 text-left">Exchanges</th>
               <th className="p-3 text-left">Ex Delay</th>
+              <th className="p-3 text-left">Gift Card</th>
+              <th className="p-3 text-left">GC Delay</th>
+              <th className="p-3 text-left">Keep Item</th>
+              <th className="p-3 text-left">Amount</th>
+              <th className="p-3 text-left">Bypass Review</th>
             </tr>
           </thead>
           <tbody>
             {data.map((x, i) => (
               <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="p-3">{x.date}</td>
+                <td className="p-3">
+                  {x.userInfo?.collectedAt
+                    ? new Date(x.userInfo.collectedAt).toLocaleString()
+                    : "—"}
+                </td>
                 <td className="p-3">{x.parsed?.name || "—"}</td>
                 <td className="p-3 text-blue-600 underline">
                   {x.parsed?.url ? (
