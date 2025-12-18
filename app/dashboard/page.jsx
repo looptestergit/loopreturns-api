@@ -190,9 +190,13 @@ const downloadParsedCSV = () => {
                 <td className="p-3">{x.date}</td>
                 <td className="p-3">{x.parsed?.name || "—"}</td>
                 <td className="p-3 text-blue-600 underline">
-                  <a href={x.parsed?.url} target="_blank" rel="noreferrer">
-                    {x.parsed?.url || "—"}
-                  </a>
+                  {x.parsed?.url ? (
+                    <a href={x.parsed.url} target="_blank" rel="noreferrer">
+                      {x.parsed?.name || "Open Store"}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="p-3">{x.parsed?.returns || "—"}</td>
                 <td className="p-3">{x.parsed?.rDelay || "—"}</td>
