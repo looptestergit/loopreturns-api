@@ -198,10 +198,15 @@ const downloadParsedCSV = () => {
                     "—"
                   )}
                 </td>
-                <td className="p-3">{x.parsed?.returns || "—"}</td>
-                <td className="p-3">{x.parsed?.rDelay || "—"}</td>
-                <td className="p-3">{x.parsed?.exchanges || "—"}</td>
-                <td className="p-3">{x.parsed?.eDelay || "—"}</td>
+                <td className="p-3">{x.parsed?.returns || "None"}</td>
+                <td className="p-3">{x.parsed?.rDelay || "None"}</td>
+                <td className="p-3">{x.parsed?.exchanges || "None"}</td>
+                <td className="p-3">{x.parsed?.eDelay || "None"}</td>
+                <td className="p-3">{x.parsed?.gc || "None"}</td>
+                <td className="p-3">{x.parsed?.gDelay || "None"}</td>
+                <td className="p-3">{x.parsed?.keepItem || "None"}</td>
+                <td className="p-3">{x.parsed?.keepItemAmnt || "None"}</td>
+                <td className="p-3">{x.parsed?.bypassReview || "None"}</td>
               </tr>
             ))}
           </tbody>
