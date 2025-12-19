@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Tie Bar",
+    "url": "https://returns.thetiebar.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  },
+  {
+    "name": "Casely",
+    "url": "https://returns.getcasely.com",
+    "returns": "in_transit",
+    "rDelay": 0,
+    "exchanges": "in_transit",
+    "eDelay": 24,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 10000,
+    "bypassReview": false
+  },
+  {
+    "name": "Daddies Board Shop",
+    "url": "https://returns.daddiesboardshop.com",
+    "returns": "delivered",
+    "rDelay": 192,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "in_transit",
+    "gDelay": 0,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  },
+  {
+    "name": "Medik8-US",
+    "url": "https://medik8skin-prod-us.loopreturns.com",
+    "returns": "delivered",
+    "rDelay": 72,
+    "exchanges": "in_transit",
+    "eDelay": 0,
+    "gc": "delivered",
+    "gDelay": 72,
+    "keepItem": false,
+    "keepItemAmnt": 0,
+    "bypassReview": false
+  }
+]
